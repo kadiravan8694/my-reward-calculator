@@ -1,0 +1,282 @@
+/* App.css */
+
+/* General Styles */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f4f4;
+}
+
+.App {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+header {
+  background-color: #0b5394;
+  text-align: center;
+  padding: 20px 0;
+  color: white;
+  border-radius: 8px;
+}
+
+header h1 {
+  margin: 0;
+  text-align: center;
+}
+
+/* Configuration Section */
+.config-section {
+  background-color: white;
+  padding: 20px;
+  margin-top: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.config-section h2 {
+  color: #0b5394;
+  margin-bottom: 15px;
+  
+}
+
+.config-form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+  width: 48%;
+}
+
+.input-group.medium {
+  width: 48%;
+}
+
+.input-group label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.medium-input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.button-group {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.edit-btn {
+  padding: 10px 20px;
+  background-color: #0b5394;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  justify-content: left;
+}
+
+.edit-btn:hover {
+  background-color: #357ab8;
+}
+
+/* Spend Inputs Section */
+.spend-section {
+  background-color: white;
+  padding: 20px;
+  margin-top: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.spend-section h2 {
+  color: #0b5394;
+  margin-bottom: 15px;
+}
+
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.buttons {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.calculate-btn, .clear-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.calculate-btn {
+  background-color: #0b5394;
+  color: white;
+}
+
+.calculate-btn:hover {
+  background-color: #357ab8;
+}
+
+.clear-btn {
+  background-color: #da190b;
+  color: white;
+}
+
+.clear-btn:hover {
+  background-color: #f44336;
+}
+
+/* Calculation Results Section */
+.result-section {
+  background-color: white;
+  padding: 20px;
+  margin-top: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.result-section h2 {
+  color: #0b5394;
+  margin-bottom: 15px;
+}
+
+.success {
+  color: green;
+  font-weight: bold;
+}
+
+.failure {
+  color: red;
+  font-weight: bold;
+}
+
+/* Minimum Spend Calculation Section */
+.minimum-spend-section {
+  background-color: white;
+  padding: 20px;
+  margin-top: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.minimum-spend-section h2 {
+  color: #0b5394;
+  margin-bottom: 15px;
+}
+
+.min-btn {
+  padding: 10px 20px;
+  background-color: #0b5394;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.min-btn:hover {
+  background-color: #357ab8;
+}
+
+.minimum-results {
+  margin-top: 20px;
+  text-align: left;
+}
+
+.minimum-results h3 {
+  color: #0b5394;
+  margin-bottom: 10px;
+}
+
+.minimum-results p {
+  margin: 5px 0;
+}
+
+/* Contact Us Section */
+.contact-section {
+  background-color: #ffffff;
+  padding: 30px;
+  margin-top: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.contact-section h2 {
+  color: #0b5394;
+  margin-bottom: 25px;
+}
+
+.contact-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+}
+
+.contact-item a {
+  color: #0b5394;
+  text-decoration: none;
+}
+
+.contact-item a:hover {
+  text-decoration: underline;
+}
+
+.icon {
+  color: #0b5394;
+  font-size: 20px;
+}
+
+/* Footer */
+footer {
+  margin-top: 40px;
+  padding: 10px 0;
+  background-color: #0b5394;
+  color: white;
+  border-radius: 8px;
+}
+
+footer p {
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .input-group.medium, .input-group {
+    width: 100%;
+  }
+
+  .contact-details {
+    gap: 10px;
+  }
+
+  .contact-item {
+    font-size: 16px;
+  }
+}
