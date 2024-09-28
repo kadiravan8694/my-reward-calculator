@@ -10,14 +10,17 @@ import { faLinkedin, faInstagram } from '@fortawesome/free-brands-svg-icons';
 
 function App() {
   // Constants
-  const POINTS_REQUIRED = 2500; // Minimum points to withdraw
+  //const POINTS_REQUIRED = 2500; // Minimum points to withdraw
 
   // Configuration State
   const [config, setConfig] = useState({
     baseAmount: 150, // Rs. 150
     onlineRate: 4,    // 4 Reward Points per baseAmount spent online
-    normalRate: 2     // 2 Reward Points per baseAmount spent normally
+    normalRate: 2,    // 2 Reward Points per baseAmount spent normally
+	minimumPoints: 2500,   // Minimum points to withdraw
+	existingPoints: 0   // Existing Reward points balance
   });
+  const POINTS_REQUIRED = (config.minimumPoints-config.existingPoints); // Minimum points to withdraw
 
   const [isEditing, setIsEditing] = useState(false); // Toggle edit mode
 
@@ -141,6 +144,32 @@ function App() {
                 type="number"
                 name="normalRate"
                 value={config.normalRate}
+                onChange={handleConfigChange}
+                disabled={!isEditing}
+                min="0"
+                step="0.1"
+                className="medium-input"
+              />
+            </div>
+			<div className="input-group medium">
+              <label>Minimum Reward Points Required:</label>
+              <input
+                type="number"
+                name="minimumPoints"
+                value={config.minimumPoints}
+                onChange={handleConfigChange}
+                disabled={!isEditing}
+                min="0"
+                step="0.1"
+                className="medium-input"
+              />
+            </div>
+			<div className="input-group medium">
+              <label>Existing Reward Points:</label>
+              <input
+                type="number"
+                name="existingPoints"
+                value={config.existingPoints}
                 onChange={handleConfigChange}
                 disabled={!isEditing}
                 min="0"
