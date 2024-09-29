@@ -19,7 +19,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "homepage": "http://your-username.github.io/my-reward-calculator",
+  "homepage": "http://kadiravan8694.github.io/my-reward-calculator",
   "eslintConfig": {
     "extends": [
       "react-app",
