@@ -1,6 +1,6 @@
 // src/App.js
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import './App.css';
 
 // Import Font Awesome Components
@@ -9,25 +9,52 @@ import { faMobileAlt, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { faLinkedin, faInstagram } from '@fortawesome/free-brands-svg-icons';
 
 function App() {
-  // Constants
-  //const POINTS_REQUIRED = 2500; // Minimum points to withdraw
-
-  // Configuration State
-  const [config, setConfig] = useState({
-    baseAmount: 150, // Rs. 150
-    onlineRate: 4,    // 4 Reward Points per baseAmount spent online
-    normalRate: 2,    // 2 Reward Points per baseAmount spent normally
-	minimumPoints: 2500,   // Minimum points to withdraw
-	existingPoints: 0   // Existing Reward points balance
+  // Initialize config from Local Storage or use default values
+  const [config, setConfig] = useState(() => {
+    try {
+      const savedConfig = localStorage.getItem('rewardConfig');
+      const parsedConfig = savedConfig ? JSON.parse(savedConfig) : null;
+      
+      // Validate the parsedConfig
+      if (
+        parsedConfig &&
+        typeof parsedConfig.baseAmount === 'number' &&
+        typeof parsedConfig.onlineRate === 'number' &&
+        typeof parsedConfig.normalRate === 'number' &&
+        typeof parsedConfig.minimumPoints === 'number' &&
+        typeof parsedConfig.existingPoints === 'number'
+      ) {
+        return parsedConfig;
+      } else {
+        throw new Error('Invalid config structure');
+      }
+    } catch (error) {
+      console.warn('Failed to load config from Local Storage:', error);
+      return {
+        baseAmount: 150, // Rs. 150
+        onlineRate: 4,    // 4 Reward Points per baseAmount spent online
+        normalRate: 2,    // 2 Reward Points per baseAmount spent normally
+        minimumPoints: 2500,   // Minimum points to withdraw
+        existingPoints: 0,     // Existing Reward points balance
+      };
+    }
   });
-  const POINTS_REQUIRED = (config.minimumPoints-config.existingPoints); // Minimum points to withdraw
+
+  // Save config to Local Storage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('rewardConfig', JSON.stringify(config));
+  }, [config]);
+
+  const POINTS_REQUIRED = useMemo(() => {
+    return Math.max(config.minimumPoints - config.existingPoints, 0);
+  }, [config.minimumPoints, config.existingPoints]);
 
   const [isEditing, setIsEditing] = useState(false); // Toggle edit mode
 
   // User Spend Inputs
   const [spendInputs, setSpendInputs] = useState({
     onlineSpend: '',
-    normalSpend: ''
+    normalSpend: '',
   });
 
   // Calculation Results
@@ -37,22 +64,28 @@ function App() {
   // Handlers for Configuration Inputs
   const handleConfigChange = (e) => {
     const { name, value } = e.target;
+    const numericValue = parseFloat(value);
     setConfig(prevConfig => ({
       ...prevConfig,
-      [name]: parseFloat(value) || 0
+      [name]: numericValue >= 0 ? numericValue : 0,
     }));
   };
 
   const toggleEdit = () => {
+    if (isEditing) {
+      // Optionally, add feedback when saving configurations
+      // alert('Configurations saved successfully!');
+    }
     setIsEditing(!isEditing);
   };
 
   // Handlers for Spend Inputs
   const handleSpendChange = (e) => {
     const { name, value } = e.target;
+    const numericValue = parseFloat(value);
     setSpendInputs(prevInputs => ({
       ...prevInputs,
-      [name]: value
+      [name]: numericValue >= 0 ? numericValue : 0,
     }));
   };
 
@@ -72,7 +105,7 @@ function App() {
       pointsFromOnline: pointsFromOnline,
       pointsFromNormal: pointsFromNormal,
       totalPoints: totalPoints,
-      meetsRequirement: totalPoints >= POINTS_REQUIRED
+      meetsRequirement: totalPoints >= POINTS_REQUIRED,
     });
   };
 
@@ -80,15 +113,22 @@ function App() {
   const handleCalculateMinimumSpend = () => {
     const { baseAmount, onlineRate, normalRate } = config;
 
-    // Minimum online spend to achieve POINTS_REQUIRED
-    const minOnlineSpend = (POINTS_REQUIRED / (onlineRate / baseAmount)).toFixed(2);
+    if (onlineRate === 0 && normalRate === 0) {
+      alert('Both online and normal rates cannot be zero.');
+      return;
+    }
 
-    // Minimum normal spend to achieve POINTS_REQUIRED
-    const minNormalSpend = (POINTS_REQUIRED / (normalRate / baseAmount)).toFixed(2);
+    const minOnlineSpend = onlineRate > 0
+      ? (POINTS_REQUIRED / (onlineRate / baseAmount)).toFixed(2)
+      : 'N/A';
+
+    const minNormalSpend = normalRate > 0
+      ? (POINTS_REQUIRED / (normalRate / baseAmount)).toFixed(2)
+      : 'N/A';
 
     setMinimumSpendResult({
-      minOnlineSpend: parseFloat(minOnlineSpend),
-      minNormalSpend: parseFloat(minNormalSpend)
+      minOnlineSpend: minOnlineSpend !== 'N/A' ? parseFloat(minOnlineSpend) : minOnlineSpend,
+      minNormalSpend: minNormalSpend !== 'N/A' ? parseFloat(minNormalSpend) : minNormalSpend,
     });
   };
 
@@ -96,10 +136,24 @@ function App() {
   const handleClear = () => {
     setSpendInputs({
       onlineSpend: '',
-      normalSpend: ''
+      normalSpend: '',
     });
     setCalculationResult(null);
     setMinimumSpendResult(null);
+  };
+
+  // Handler to reset configuration to default (Optional)
+  const handleResetConfig = () => {
+    const defaultConfig = {
+      baseAmount: 150,
+      onlineRate: 4,
+      normalRate: 2,
+      minimumPoints: 2500,
+      existingPoints: 0,
+    };
+    setConfig(defaultConfig);
+    // Saving to Local Storage is handled by useEffect
+    alert('Configurations have been reset to default values.');
   };
 
   return (
@@ -113,9 +167,10 @@ function App() {
           <h2>Configure Reward Rates</h2>
           <div className="config-form">
             <div className="input-group medium">
-              <label>Base Amount (Rs.):</label>
+              <label htmlFor="baseAmount">Base Amount (Rs.):</label>
               <input
                 type="number"
+                id="baseAmount"
                 name="baseAmount"
                 value={config.baseAmount}
                 onChange={handleConfigChange}
@@ -126,9 +181,10 @@ function App() {
               />
             </div>
             <div className="input-group medium">
-              <label>Reward Points per Base Amount Online:</label>
+              <label htmlFor="onlineRate">Reward Points per Base Amount Online:</label>
               <input
                 type="number"
+                id="onlineRate"
                 name="onlineRate"
                 value={config.onlineRate}
                 onChange={handleConfigChange}
@@ -139,9 +195,10 @@ function App() {
               />
             </div>
             <div className="input-group medium">
-              <label>Reward Points per Base Amount Normally:</label>
+              <label htmlFor="normalRate">Reward Points per Base Amount Normally:</label>
               <input
                 type="number"
+                id="normalRate"
                 name="normalRate"
                 value={config.normalRate}
                 onChange={handleConfigChange}
@@ -151,35 +208,40 @@ function App() {
                 className="medium-input"
               />
             </div>
-			<div className="input-group medium">
-              <label>Minimum Reward Points Required:</label>
+            <div className="input-group medium">
+              <label htmlFor="minimumPoints">Minimum Reward Points Required:</label>
               <input
                 type="number"
+                id="minimumPoints"
                 name="minimumPoints"
                 value={config.minimumPoints}
                 onChange={handleConfigChange}
                 disabled={!isEditing}
                 min="0"
-                step="0.1"
+                step="1"
                 className="medium-input"
               />
             </div>
-			<div className="input-group medium">
-              <label>Existing Reward Points:</label>
+            <div className="input-group medium">
+              <label htmlFor="existingPoints">Existing Reward Points:</label>
               <input
                 type="number"
+                id="existingPoints"
                 name="existingPoints"
                 value={config.existingPoints}
                 onChange={handleConfigChange}
                 disabled={!isEditing}
                 min="0"
-                step="0.1"
+                step="1"
                 className="medium-input"
               />
             </div>
             <div className="button-group">
-              <button onClick={toggleEdit} className="edit-btn">
+              <button onClick={toggleEdit} className="edit-btn" aria-label={isEditing ? 'Save configurations' : 'Edit configurations'}>
                 {isEditing ? 'Save' : 'Edit'}
+              </button>
+              <button onClick={handleResetConfig} className="reset-btn">
+                Reset to Default
               </button>
             </div>
           </div>
@@ -190,9 +252,10 @@ function App() {
           <h2>Enter Your Spendings</h2>
           <div className="form">
             <div className="input-group medium">
-              <label>Online Spend (Rs.):</label>
+              <label htmlFor="onlineSpend">Online Spend (Rs.):</label>
               <input
                 type="number"
+                id="onlineSpend"
                 name="onlineSpend"
                 value={spendInputs.onlineSpend}
                 onChange={handleSpendChange}
@@ -202,9 +265,10 @@ function App() {
               />
             </div>
             <div className="input-group medium">
-              <label>Normal Spend (Rs.):</label>
+              <label htmlFor="normalSpend">Normal Spend (Rs.):</label>
               <input
                 type="number"
+                id="normalSpend"
                 name="normalSpend"
                 value={spendInputs.normalSpend}
                 onChange={handleSpendChange}
@@ -254,35 +318,47 @@ function App() {
         {/* Minimum Spend Calculation Section */}
         <section className="minimum-spend-section">
           <h2>Minimum Spend to Achieve {POINTS_REQUIRED} Points</h2>
-          <button onClick={handleCalculateMinimumSpend} className="min-btn">
-            Calculate Minimum Spend
-          </button>
+          {POINTS_REQUIRED === 0 ? (
+            <p>You have already met the minimum points required for withdrawal.</p>
+          ) : (
+            <>
+              <button onClick={handleCalculateMinimumSpend} className="min-btn">
+                Calculate Minimum Spend
+              </button>
 
-          {minimumSpendResult && (
-            <div className="minimum-results">
-              <h3>Total Online Spend Required</h3>
-              <p>
-                <strong>Online Spend:</strong> Rs. {minimumSpendResult.minOnlineSpend.toFixed(2)}
-              </p>
+              {minimumSpendResult && (
+                <div className="minimum-results">
+                  <h3>Total Online Spend Required</h3>
+                  <p>
+                    <strong>Online Spend:</strong>{' '}
+                    {minimumSpendResult.minOnlineSpend !== 'N/A'
+                      ? `Rs. ${minimumSpendResult.minOnlineSpend.toFixed(2)}`
+                      : 'N/A'}
+                  </p>
 
-              <h3>Total Normal Spend Required</h3>
-              <p>
-                <strong>Normal Spend:</strong> Rs. {minimumSpendResult.minNormalSpend.toFixed(2)}
-              </p>
-            </div>
+                  <h3>Total Normal Spend Required</h3>
+                  <p>
+                    <strong>Normal Spend:</strong>{' '}
+                    {minimumSpendResult.minNormalSpend !== 'N/A'
+                      ? `Rs. ${minimumSpendResult.minNormalSpend.toFixed(2)}`
+                      : 'N/A'}
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </section>
 
         {/* Contact Us Section */}
         <section className="contact-section">
-          <h2>Contact Us</h2>
+          <h2>Get in Touch with Us for Support, Sales, or General Inquiries!</h2>
           <div className="contact-details">
             {/* Stylized Name */}
-            <p style={{ textAlign: 'center', fontSize: '20px', marginBottom: '15px' }}>
-              <span style={{ color: 'red' }}>K</span>
-              <span style={{ color: '#0b5394' }}>adiravan&nbsp;</span>
-              <span style={{ color: 'red' }}>K</span>
-              <span style={{ color: '#0b5394' }}>alidoss..!</span>
+            <p className="stylized-name">
+              <span className="red">K</span>
+              <span className="blue">adiravan&nbsp;</span>
+              <span className="red">K</span>
+              <span className="blue">alidoss..!</span>
             </p>
 
             {/* Contact Items */}
