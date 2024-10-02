@@ -6,7 +6,7 @@ on:
       - main
 
 permissions:
-  contents: write  # Adjust based on your needs
+  contents: write  # Adjust as necessary for your workflow
 
 jobs:
   build-and-deploy:
@@ -19,10 +19,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'  # Explicitly specify Node.js 20
+          node-version: '20'  # Explicitly use Node.js 20
 
       - name: Install Dependencies
         run: npm install
+
+      - name: Run Tests
+        run: npm test  # Add this step if you are running tests
 
       - name: Build Project
         run: npm run build
