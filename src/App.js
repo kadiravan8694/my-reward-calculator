@@ -14,15 +14,15 @@ function App() {
     try {
       const savedConfig = localStorage.getItem('rewardConfig');
       const parsedConfig = savedConfig ? JSON.parse(savedConfig) : null;
-      
+
       // Validate the parsedConfig
       if (
         parsedConfig &&
-        typeof parsedConfig.baseAmount === 'number' &&
-        typeof parsedConfig.onlineRate === 'number' &&
-        typeof parsedConfig.normalRate === 'number' &&
-        typeof parsedConfig.minimumPoints === 'number' &&
-        typeof parsedConfig.existingPoints === 'number'
+        (typeof parsedConfig.baseAmount === 'number' || typeof parsedConfig.baseAmount === 'string') &&
+        (typeof parsedConfig.onlineRate === 'number' || typeof parsedConfig.onlineRate === 'string') &&
+        (typeof parsedConfig.normalRate === 'number' || typeof parsedConfig.normalRate === 'string') &&
+        (typeof parsedConfig.minimumPoints === 'number' || typeof parsedConfig.minimumPoints === 'string') &&
+        (typeof parsedConfig.existingPoints === 'number' || typeof parsedConfig.existingPoints === 'string')
       ) {
         return parsedConfig;
       } else {
@@ -31,11 +31,11 @@ function App() {
     } catch (error) {
       console.warn('Failed to load config from Local Storage:', error);
       return {
-        baseAmount: 150, // Rs. 150
-        onlineRate: 4,    // 4 Reward Points per baseAmount spent online
-        normalRate: 2,    // 2 Reward Points per baseAmount spent normally
-        minimumPoints: 2500,   // Minimum points to withdraw
-        existingPoints: 0,     // Existing Reward points balance
+        baseAmount: '150',        // Rs. 150 as string
+        onlineRate: '4',          // 4 Reward Points per baseAmount spent online as string
+        normalRate: '2',          // 2 Reward Points per baseAmount spent normally as string
+        minimumPoints: '2500',    // Minimum points to withdraw as string
+        existingPoints: '0',      // Existing Reward points balance as string
       };
     }
   });
@@ -45,8 +45,10 @@ function App() {
     localStorage.setItem('rewardConfig', JSON.stringify(config));
   }, [config]);
 
+  // Calculate Points Required
   const POINTS_REQUIRED = useMemo(() => {
-    return Math.max(config.minimumPoints - config.existingPoints, 0);
+    const existing = parseInt(config.existingPoints, 10);
+    return Math.max(config.minimumPoints ? parseInt(config.minimumPoints, 10) - (isNaN(existing) ? 0 : existing) : 0, 0);
   }, [config.minimumPoints, config.existingPoints]);
 
   const [isEditing, setIsEditing] = useState(false); // Toggle edit mode
@@ -64,11 +66,22 @@ function App() {
   // Handlers for Configuration Inputs
   const handleConfigChange = (e) => {
     const { name, value } = e.target;
-    const numericValue = parseFloat(value);
-    setConfig(prevConfig => ({
-      ...prevConfig,
-      [name]: numericValue >= 0 ? numericValue : 0,
-    }));
+
+    // Allow all config fields to be empty strings or valid positive numbers
+    if (value === '') {
+      setConfig((prevConfig) => ({
+        ...prevConfig,
+        [name]: '',
+      }));
+    } else {
+      const numericValue = parseFloat(value);
+      if (!isNaN(numericValue) && numericValue >= 0) {
+        setConfig((prevConfig) => ({
+          ...prevConfig,
+          [name]: numericValue.toString(),
+        }));
+      }
+    }
   };
 
   const toggleEdit = () => {
@@ -82,11 +95,20 @@ function App() {
   // Handlers for Spend Inputs
   const handleSpendChange = (e) => {
     const { name, value } = e.target;
-    const numericValue = parseFloat(value);
-    setSpendInputs(prevInputs => ({
-      ...prevInputs,
-      [name]: numericValue >= 0 ? numericValue : 0,
-    }));
+    if (value === '') {
+      setSpendInputs((prevInputs) => ({
+        ...prevInputs,
+        [name]: '',
+      }));
+    } else {
+      const numericValue = parseFloat(value);
+      if (!isNaN(numericValue) && numericValue >= 0) {
+        setSpendInputs((prevInputs) => ({
+          ...prevInputs,
+          [name]: numericValue,
+        }));
+      }
+    }
   };
 
   // Calculate Reward Points based on user spends
@@ -94,9 +116,20 @@ function App() {
     const online = parseFloat(spendInputs.onlineSpend) || 0;
     const normal = parseFloat(spendInputs.normalSpend) || 0;
 
+    // Parse config values, defaulting to 0 if invalid
+    const baseAmount = parseFloat(config.baseAmount) || 0;
+    const onlineRate = parseFloat(config.onlineRate) || 0;
+    const normalRate = parseFloat(config.normalRate) || 0;
+
+    // Prevent division by zero
+    if (baseAmount === 0) {
+      alert('Base Amount cannot be zero.');
+      return;
+    }
+
     // Calculate points
-    const pointsFromOnline = (config.onlineRate / config.baseAmount) * online;
-    const pointsFromNormal = (config.normalRate / config.baseAmount) * normal;
+    const pointsFromOnline = (onlineRate / baseAmount) * online;
+    const pointsFromNormal = (normalRate / baseAmount) * normal;
     const totalPoints = pointsFromOnline + pointsFromNormal;
 
     setCalculationResult({
@@ -111,20 +144,24 @@ function App() {
 
   // Calculate Minimum Spend required for online and normal separately
   const handleCalculateMinimumSpend = () => {
-    const { baseAmount, onlineRate, normalRate } = config;
+    const baseAmount = parseFloat(config.baseAmount) || 0;
+    const onlineRate = parseFloat(config.onlineRate) || 0;
+    const normalRate = parseFloat(config.normalRate) || 0;
 
     if (onlineRate === 0 && normalRate === 0) {
       alert('Both online and normal rates cannot be zero.');
       return;
     }
 
-    const minOnlineSpend = onlineRate > 0
-      ? (POINTS_REQUIRED / (onlineRate / baseAmount)).toFixed(2)
-      : 'N/A';
+    const minOnlineSpend =
+      onlineRate > 0
+        ? (POINTS_REQUIRED / (onlineRate / baseAmount)).toFixed(2)
+        : 'N/A';
 
-    const minNormalSpend = normalRate > 0
-      ? (POINTS_REQUIRED / (normalRate / baseAmount)).toFixed(2)
-      : 'N/A';
+    const minNormalSpend =
+      normalRate > 0
+        ? (POINTS_REQUIRED / (normalRate / baseAmount)).toFixed(2)
+        : 'N/A';
 
     setMinimumSpendResult({
       minOnlineSpend: minOnlineSpend !== 'N/A' ? parseFloat(minOnlineSpend) : minOnlineSpend,
@@ -145,11 +182,11 @@ function App() {
   // Handler to reset configuration to default (Optional)
   const handleResetConfig = () => {
     const defaultConfig = {
-      baseAmount: 150,
-      onlineRate: 4,
-      normalRate: 2,
-      minimumPoints: 2500,
-      existingPoints: 0,
+      baseAmount: '150',
+      onlineRate: '4',
+      normalRate: '2',
+      minimumPoints: '2500',
+      existingPoints: '0',
     };
     setConfig(defaultConfig);
     // Saving to Local Storage is handled by useEffect
@@ -237,7 +274,11 @@ function App() {
               />
             </div>
             <div className="button-group">
-              <button onClick={toggleEdit} className="edit-btn" aria-label={isEditing ? 'Save configurations' : 'Edit configurations'}>
+              <button
+                onClick={toggleEdit}
+                className="edit-btn"
+                aria-label={isEditing ? 'Save configurations' : 'Edit configurations'}
+              >
                 {isEditing ? 'Save' : 'Edit'}
               </button>
               <button onClick={handleResetConfig} className="reset-btn">
