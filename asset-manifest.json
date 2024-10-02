@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/my-reward-calculator/static/css/main.963372a4.css",
-    "main.js": "/my-reward-calculator/static/js/main.3a5eed60.js",
+    "main.css": "/my-reward-calculator/static/css/main.d793fb32.css",
+    "main.js": "/my-reward-calculator/static/js/main.646a88fd.js",
     "index.html": "/my-reward-calculator/index.html",
-    "main.963372a4.css.map": "/my-reward-calculator/static/css/main.963372a4.css.map",
-    "main.3a5eed60.js.map": "/my-reward-calculator/static/js/main.3a5eed60.js.map"
+    "main.d793fb32.css.map": "/my-reward-calculator/static/css/main.d793fb32.css.map",
+    "main.646a88fd.js.map": "/my-reward-calculator/static/js/main.646a88fd.js.map"
   },
   "entrypoints": [
-    "static/css/main.963372a4.css",
-    "static/js/main.3a5eed60.js"
+    "static/css/main.d793fb32.css",
+    "static/js/main.646a88fd.js"
   ]
 }
